@@ -1,7 +1,14 @@
 import streamlit as st
 import numpy as np
-from moviepy.editor import VideoFileClip
 from datetime import datetime
+# Try importing MoviePy
+try:
+    from moviepy.editor import VideoFileClip
+    moviepy_available = True
+except ModuleNotFoundError:
+    st.warning("⚠ MoviePy not found. Video-based crowd estimation disabled.")
+    moviepy_available = False
+
 
 # -----------------------------
 # PAGE SETUP
@@ -29,28 +36,29 @@ st.info(f"System Time Mode: **{time_mode}** | Green ≤ {GREEN_LIMIT}, Yellow �
 # -----------------------------
 # LOAD VIDEO
 # -----------------------------
-video_path = "crowd.mp4"
-st.video(video_path)
+ if moviepy_available:
+    video_path = "crowd.mp4"
+    st.video(video_path)
 
-# -----------------------------
-# CROWD ESTIMATION (NO CV2)
-# -----------------------------
-@st.cache_data
-def estimate_crowd(video_path):
-    clip = VideoFileClip(video_path).subclip(0, 5)
-    frames = list(clip.iter_frames(fps=1))
+    @st.cache_data
+    def estimate_crowd(video_path):
+        clip = VideoFileClip(video_path).subclip(0, 5)
+        frames = list(clip.iter_frames(fps=1))
 
-    densities = []
-    for frame in frames:
-        gray = np.mean(frame, axis=2)
-        density = np.std(gray)
-        densities.append(density)
+        densities = []
+        for frame in frames:
+            gray = np.mean(frame, axis=2)
+            density = np.std(gray)
+            densities.append(density)
 
-    avg_density = np.mean(densities)
-    crowd_count = int(avg_density * 0.8)  # Prototype logic
-    return crowd_count
+        avg_density = np.mean(densities)
+        crowd_count = int(avg_density * 0.8)  # Prototype logic
+        return crowd_count
 
-crowd_count_estimated = estimate_crowd(video_path)
+    crowd_count_estimated = estimate_crowd(video_path)
+else:
+    # If MoviePy not available, use a default crowd count
+    crowd_count_estimated = 50
 
 # -----------------------------
 # CROWD SLIDER
@@ -117,3 +125,4 @@ for i, gate in enumerate(gates):
 st.markdown("---")
 st.success(f"📊 Estimated Total Crowd Count: **{crowd_count}**")
 st.info("This is a software-based prototype for temples, annadhanam halls & mass gatherings.")
+
