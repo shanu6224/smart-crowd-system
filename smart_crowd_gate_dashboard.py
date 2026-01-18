@@ -1,14 +1,6 @@
 import streamlit as st
 import numpy as np
 from datetime import datetime
-# Try importing MoviePy
-try:
-    from moviepy.editor import VideoFileClip
-    moviepy_available = True
-except ModuleNotFoundError:
-    st.warning("⚠ MoviePy not found. Video-based crowd estimation disabled.")
-    moviepy_available = False
-
 
 # -----------------------------
 # PAGE SETUP
@@ -31,12 +23,25 @@ else:
     brightness = "Dim Signals"
 
 st.subheader(f"{time_mode} | {brightness}")
-st.info(f"System Time Mode: **{time_mode}** | Green ≤ {GREEN_LIMIT}, Yellow ≤ {YELLOW_LIMIT}, Red > {YELLOW_LIMIT}") 
+st.info(
+    f"System Time Mode: **{time_mode}** | "
+    f"Green ≤ {GREEN_LIMIT}, Yellow ≤ {YELLOW_LIMIT}, Red > {YELLOW_LIMIT}"
+)
 
 # -----------------------------
-# LOAD VIDEO
+# CHECK MOVIEPY
 # -----------------------------
- if moviepy_available:
+try:
+    from moviepy.editor import VideoFileClip
+    moviepy_available = True
+except ModuleNotFoundError:
+    st.warning("⚠ MoviePy not found. Video-based crowd estimation disabled.")
+    moviepy_available = False
+
+# -----------------------------
+# LOAD VIDEO & CROWD ESTIMATION
+# -----------------------------
+if moviepy_available:
     video_path = "crowd.mp4"
     st.video(video_path)
 
@@ -57,7 +62,7 @@ st.info(f"System Time Mode: **{time_mode}** | Green ≤ {GREEN_LIMIT}, Yellow �
 
     crowd_count_estimated = estimate_crowd(video_path)
 else:
-    # If MoviePy not available, use a default crowd count
+    # Default crowd count if MoviePy is not available
     crowd_count_estimated = 50
 
 # -----------------------------
@@ -110,7 +115,11 @@ for i, gate in enumerate(gates):
     with cols[i]:
         st.markdown(f"### {gate}")
         st.metric(label="Crowd Count", value=f"{count}")
-        st.markdown(f"<div style='background-color:{color};padding:5px;border-radius:5px;text-align:center;color:white;'>{signal}</div>", unsafe_allow_html=True)
+        st.markdown(
+            f"<div style='background-color:{color};padding:5px;"
+            f"border-radius:5px;text-align:center;color:white;'>{signal}</div>",
+            unsafe_allow_html=True,
+        )
         st.write(f"Action: {action}")
         
         # Redirect logic
@@ -125,4 +134,3 @@ for i, gate in enumerate(gates):
 st.markdown("---")
 st.success(f"📊 Estimated Total Crowd Count: **{crowd_count}**")
 st.info("This is a software-based prototype for temples, annadhanam halls & mass gatherings.")
-
