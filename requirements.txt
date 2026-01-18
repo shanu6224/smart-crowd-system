@@ -1,7 +1,4 @@
 streamlit
-opencv-python-headless
+opencv-python
+moviepy
 numpy
-pandas
-matplotlib
-scikit-learn
-pillow
